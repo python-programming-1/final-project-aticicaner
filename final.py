@@ -8,6 +8,31 @@ from time import sleep
 # fuel_economy = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2016&year2=2016&make=Volkswagen&baseModel=Passat&srchtyp=ymm'
 
 print('MONTHLY COSTS OF ALTERNATIVE TRANSPORTATION METHODS')
+print()
+
+def rideshare_busses():
+    #Calculation of public transportation costs for me
+
+    bus_fare = 1.75
+    uber_weekends = 12.44   #average cost of a trip I take on weekends
+    uber_weekdays = 8.12    #average cost of a trip I use to commute to ucla x
+
+    #alternative 1 - Using busses only for weekdays and uber on weekends
+    per_month_1 = (uber_weekends * 16) + (bus_fare * 24)
+    print('alternative 1 - Using busses only for weekdays and uber on weekends')
+    print('Cost : $' + str(round(per_month_1,2)))
+
+    #alternative 2 - Using uber one way in weekdays
+    per_month_2 = (uber_weekends * 16) + (uber_weekdays * 12) + (bus_fare *12)
+    print('alternative 2 - Using uber one way in weekdays and uber on weekends')
+    print('Cost : $' + str(round(per_month_2,2)))
+
+    #alternative 3 - Using uber only
+    per_month_3 = (uber_weekends * 16) + (uber_weekdays * 24)
+    print('alternative 3 - Using uber only')
+    print('Cost : $' + str(round(per_month_3,2)))
+
+rideshare_busses()
 
 #Getting data on costs of car ownership costs for me
 
@@ -17,7 +42,9 @@ fuel_short = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=
 #cars to look up
 cars = {'honda' : ['accord', 'civic'], \
     'audi' : ['a3', 'a4'], \
+    'ford' : ['focus'], \
     'volkswagen' : ['passat', 'jetta'], \
+    'hyundai' : ['sonata'], \
     'toyota' : ['prius', 'corolla']}
 
 min_year = '2016'
@@ -55,33 +82,7 @@ for car_make in cars:
 
         car_data.setdefault(car_make + ' ' + car_model, []).append(str(fuel_select.string))
 
-        sleep(0.1) # sleep for 1 second between each model, meaning every other webpage for both websites
-
-
-#Calculation of public transportation costs for me
-
-bus_fare = 1.75
-uber_weekends = 12.44   #average cost of a trip I take on weekends
-uber_weekdays = 8.12    #average cost of a trip I use to commute to ucla x
-
-#alternative 1 - Using busses only for weekdays and uber on weekends
-
-per_month_1 = (uber_weekends * 16) + (bus_fare * 24)
-print('alternative 1 - Using busses only for weekdays and uber on weekends')
-print('Cost : $' + str(per_month_1))
-
-#alternative 2 - Using uber one way in weekdays
-
-per_month_2 = (uber_weekends * 16) + (uber_weekdays * 12) + (bus_fare *12)
-print('alternative 2 - Using uber one way in weekdays and uber on weekends')
-print('Cost : $' + str(per_month_2))
-
-#alternative 3 - Using uber only
-
-per_month_3 = (uber_weekends * 16) + (uber_weekdays * 24)
-print('alternative 3 - Using uber only')
-print('Cost : $' + str(per_month_3))
-
+        sleep(0.1)
 
 
 #costs of different cars monthly for me per month
@@ -110,9 +111,13 @@ per_month_cars = {}
 for car in car_data:
     if car_data[car][1] != 0:
         monthly_gas_cost_per_car = (monthly_trip_length / int(car_data[car][1])) * gas_price_average
-        per_month_cars.setdefault(car, '$' + str(monthly_gas_cost_per_car + monthly_static))
+        car_physical_cost = float(car_data[car][0]) / 120
+        calculated_avg = monthly_gas_cost_per_car + monthly_static + car_physical_cost
+        per_month_cars.setdefault(car, '$' + str(round(calculated_avg, 2)))
 
+print()
 print('Costs of different cars per month: ')
+print()
 
 for key,value in per_month_cars.items():
     print(key + ' costs ' + value)
