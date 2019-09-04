@@ -7,6 +7,10 @@ from time import sleep
 # sample_url = 'https://losangeles.craigslist.org/search/cto?auto_make_model=honda+accord&min_auto_year=2016&max_auto_year=2019'
 # fuel_economy = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2016&year2=2016&make=Volkswagen&baseModel=Passat&srchtyp=ymm'
 
+print('MONTHLY COSTS OF ALTERNATIVE TRANSPORTATION METHODS')
+
+#Getting data on costs of car ownership costs for me
+
 craigslist_short = 'https://losangeles.craigslist.org/search/cto?auto_make_model='
 fuel_short = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1='
 
@@ -19,10 +23,9 @@ cars = {'honda' : ['accord', 'civic'], \
 min_year = '2016'
 max_year = '2016'
 
-insurance_cost = 849 #average in california
-
 car_data = {} # this is the main dictionary to keep information in
 
+#get car prices from craigslist and fuel economy mpg from fueleconomy.gov
 for car_make in cars:
     for car_model in cars[car_make]:
         # print(car_make + ' ' + car_model) #test bit
@@ -35,9 +38,11 @@ for car_make in cars:
         total = 0
         car_count = 0
 
-        for i in car_select:
-            total += int(str(i.string).replace('$', ''))
-            car_count += 1
+        for i in car_select: #i here is the item price for a single car
+            car_price = int(str(i.string).replace('$',''))
+            if(car_price >= 4000):
+                total += car_price
+                car_count += 1
         
         car_data.setdefault(car_make + ' ' + car_model, []).append(str(total/car_count))
 
@@ -50,32 +55,65 @@ for car_make in cars:
 
         car_data.setdefault(car_make + ' ' + car_model, []).append(str(fuel_select.string))
 
-        sleep(1)
+        sleep(0.1) # sleep for 1 second between each model, meaning every other webpage for both websites
+
+
+#Calculation of public transportation costs for me
+
+bus_fare = 1.75
+uber_weekends = 12.44   #average cost of a trip I take on weekends
+uber_weekdays = 8.12    #average cost of a trip I use to commute to ucla x
+
+#alternative 1 - Using busses only for weekdays and uber on weekends
+
+per_month_1 = (uber_weekends * 16) + (bus_fare * 24)
+print('alternative 1 - Using busses only for weekdays and uber on weekends')
+print('Cost : $' + str(per_month_1))
+
+#alternative 2 - Using uber one way in weekdays
+
+per_month_2 = (uber_weekends * 16) + (uber_weekdays * 12) + (bus_fare *12)
+print('alternative 2 - Using uber one way in weekdays and uber on weekends')
+print('Cost : $' + str(per_month_2))
+
+#alternative 3 - Using uber only
+
+per_month_3 = (uber_weekends * 16) + (uber_weekdays * 24)
+print('alternative 3 - Using uber only')
+print('Cost : $' + str(per_month_3))
 
 
 
-print(car_data['honda accord'])
+#costs of different cars monthly for me per month
 
-# DICTIONARY TEST
-for i in car_data:
-    for j in car_data[i]:
-        print(i + ' ' + j)
+# assumptions : # I will own the car for a year
+                # It will be around a few years of age 
+                # I can expect 10% value depreciation
+#static prices for all cars
+insurance_cost = 849 #average in california
+avg_parking_weekdays = 5
+avg_parking_weekends = 8
+monthly_parking_fees = (avg_parking_weekdays * 12) + (avg_parking_weekends * 8)
+avg_car_maintenance_monthly = 57 #average in california
 
-
-
-
-
-
-
-
-# print(url)
+monthly_static = avg_car_maintenance_monthly + monthly_parking_fees + (insurance_cost / 12)
 
 
+#gas comsumption calculations
+gas_price_average = 3.51
+avg_trip_miles_weekends = 9.2
+avg_trip_miles_weekdays = 5.2
+monthly_trip_length = (avg_trip_miles_weekends * 16) + (avg_trip_miles_weekdays * 24)
 
-# print(select) # print found car prices
-# print(type(select))  #used to figure out types of different outputs
+per_month_cars = {}
 
-# below loop prints out car prices as strings
+for car in car_data:
+    if car_data[car][1] != 0:
+        monthly_gas_cost_per_car = (monthly_trip_length / int(car_data[car][1])) * gas_price_average
+        per_month_cars.setdefault(car, '$' + str(monthly_gas_cost_per_car + monthly_static))
 
-# for i in select:
-#     print(i.string)
+print('Costs of different cars per month: ')
+
+for key,value in per_month_cars.items():
+    print(key + ' costs ' + value)
+
