@@ -7,9 +7,15 @@ from time import sleep
 # sample_url = 'https://losangeles.craigslist.org/search/cto?auto_make_model=honda+accord&min_auto_year=2016&max_auto_year=2019'
 # fuel_economy = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2016&year2=2016&make=Volkswagen&baseModel=Passat&srchtyp=ymm'
 
+# I have excluded the option to get a car and use uber occasionally
+# As it doesn't make sense to invest in a car to not use it
+
 print('MONTHLY COSTS OF ALTERNATIVE TRANSPORTATION METHODS')
 print()
 
+# Manually defined costs I am currently spending for transportation
+# Uber and busses
+# 3 different cases from my historic behavior
 def rideshare_busses():
     #Calculation of public transportation costs for me
 
@@ -40,20 +46,24 @@ print()
 craigslist_short = 'https://losangeles.craigslist.org/search/cto?auto_make_model='
 fuel_short = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1='
 
-#cars to look up
+#Input fields for this script:
+# You can add cars and change make year below
 cars = {'honda' : ['accord', 'civic'], \
     'audi' : ['a3', 'a4'], \
     'ford' : ['focus'], \
     'lexus' : ['es+350'], \
     'chevrolet' : ['silverado'], \
-    'bmw' : ['328i', '528i'], \
+    'bmw' : ['328i'], \
     'volkswagen' : ['passat', 'jetta'], \
     'kia' : ['sorento', 'optima'], \
     'hyundai' : ['sonata'], \
+    'mercedes+benz' : ['c300'], \
     'toyota' : ['prius', 'corolla']}
+car_make_year = 2016
 
-min_year = '2016'
-max_year = '2016'
+
+min_year = str(car_make_year)
+max_year = str(car_make_year)
 
 car_data = {} # this is the main dictionary to keep information in
 
@@ -61,6 +71,7 @@ car_data = {} # this is the main dictionary to keep information in
 for car_make in cars:
     for car_model in cars[car_make]:
         try:
+            # Get car prices for each car model
             car_url = craigslist_short + car_make + '+' + car_model + '&min_auto_year=' + min_year + '&max_auto_year=' + max_year
             car_res = requests.get(car_url)
             car_res.raise_for_status()
@@ -78,6 +89,7 @@ for car_make in cars:
             
             car_data.setdefault(car_make + ' ' + car_model, []).append(str(total/car_count))
 
+            # Get fuel consumption data for each car model
             fuel_url = fuel_short + min_year + '&year2=' + max_year + '&make=' + car_make + '&baseModel=' + car_model + '&srchtyp=ymm'
 
             fuel_res = requests.get(fuel_url)
@@ -113,11 +125,14 @@ avg_trip_miles_weekends = 9.2
 avg_trip_miles_weekdays = 5.2
 monthly_trip_length = (avg_trip_miles_weekends * 16) + (avg_trip_miles_weekdays * 24)
 
-per_month_cars = {}
+
+#Calculate final costs for each car model per month
+per_month_cars = {} #dict to hold car models and their monthly costs
 
 for car in car_data:
     try:
         if car_data[car][1] != 0:
+            # gas cost + static costs + car cost
             monthly_gas_cost_per_car = (monthly_trip_length / int(car_data[car][1])) * gas_price_average
             car_physical_cost = float(car_data[car][0]) / 120
             calculated_avg = monthly_gas_cost_per_car + monthly_static + car_physical_cost
@@ -128,6 +143,7 @@ print()
 print('Costs of different cars per month: ')
 print()
 
+#print out car cost results
 try:
     for key,value in per_month_cars.items():
         print(key + ' costs ' + value)
