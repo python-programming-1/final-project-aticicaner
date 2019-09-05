@@ -33,6 +33,7 @@ def rideshare_busses():
     print('Cost : $' + str(round(per_month_3,2)))
 
 rideshare_busses()
+print()
 
 #Getting data on costs of car ownership costs for me
 
@@ -43,7 +44,11 @@ fuel_short = 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=
 cars = {'honda' : ['accord', 'civic'], \
     'audi' : ['a3', 'a4'], \
     'ford' : ['focus'], \
+    'lexus' : ['es+350'], \
+    'chevrolet' : ['silverado'], \
+    'bmw' : ['328i', '528i'], \
     'volkswagen' : ['passat', 'jetta'], \
+    'kia' : ['sorento', 'optima'], \
     'hyundai' : ['sonata'], \
     'toyota' : ['prius', 'corolla']}
 
@@ -55,34 +60,36 @@ car_data = {} # this is the main dictionary to keep information in
 #get car prices from craigslist and fuel economy mpg from fueleconomy.gov
 for car_make in cars:
     for car_model in cars[car_make]:
-        # print(car_make + ' ' + car_model) #test bit
-        car_url = craigslist_short + car_make + '+' + car_model + '&min_auto_year=' + min_year + '&max_auto_year=' + max_year
-        car_res = requests.get(car_url)
-        car_res.raise_for_status()
-        soup = BeautifulSoup(car_res.text, 'html.parser')
-        car_select = soup.select('div .rows')[0].find_all('span', class_ = 'result-price')
+        try:
+            car_url = craigslist_short + car_make + '+' + car_model + '&min_auto_year=' + min_year + '&max_auto_year=' + max_year
+            car_res = requests.get(car_url)
+            car_res.raise_for_status()
+            soup = BeautifulSoup(car_res.text, 'html.parser')
+            car_select = soup.select('div .rows')[0].find_all('span', class_ = 'result-price')
 
-        total = 0
-        car_count = 0
+            total = 0
+            car_count = 0
 
-        for i in car_select: #i here is the item price for a single car
-            car_price = int(str(i.string).replace('$',''))
-            if(car_price >= 4000):
-                total += car_price
-                car_count += 1
-        
-        car_data.setdefault(car_make + ' ' + car_model, []).append(str(total/car_count))
+            for i in car_select: #i here is the item price for a single car
+                car_price = int(str(i.string).replace('$',''))
+                if(car_price >= 4000 & car_price <=45000):
+                    total += car_price
+                    car_count += 1
+            
+            car_data.setdefault(car_make + ' ' + car_model, []).append(str(total/car_count))
 
-        fuel_url = fuel_short + min_year + '&year2=' + max_year + '&make=' + car_make + '&baseModel=' + car_model + '&srchtyp=ymm'
+            fuel_url = fuel_short + min_year + '&year2=' + max_year + '&make=' + car_make + '&baseModel=' + car_model + '&srchtyp=ymm'
 
-        fuel_res = requests.get(fuel_url)
-        fuel_res.raise_for_status()
-        fuel_soup = BeautifulSoup(fuel_res.text, 'html.parser')
-        fuel_select = fuel_soup.select('div .panel-body')[0].find('td', class_ = 'mpg-comb')
+            fuel_res = requests.get(fuel_url)
+            fuel_res.raise_for_status()
+            fuel_soup = BeautifulSoup(fuel_res.text, 'html.parser')
+            fuel_select = fuel_soup.select('div .panel-body')[0].find('td', class_ = 'mpg-comb')
 
-        car_data.setdefault(car_make + ' ' + car_model, []).append(str(fuel_select.string))
+            car_data.setdefault(car_make + ' ' + car_model, []).append(str(fuel_select.string))
 
-        sleep(0.1)
+            sleep(0.1)
+        except:
+            print('Car data not found for: ' + car_make + ' ' + car_model)
 
 
 #costs of different cars monthly for me per month
@@ -109,16 +116,20 @@ monthly_trip_length = (avg_trip_miles_weekends * 16) + (avg_trip_miles_weekdays 
 per_month_cars = {}
 
 for car in car_data:
-    if car_data[car][1] != 0:
-        monthly_gas_cost_per_car = (monthly_trip_length / int(car_data[car][1])) * gas_price_average
-        car_physical_cost = float(car_data[car][0]) / 120
-        calculated_avg = monthly_gas_cost_per_car + monthly_static + car_physical_cost
-        per_month_cars.setdefault(car, '$' + str(round(calculated_avg, 2)))
-
+    try:
+        if car_data[car][1] != 0:
+            monthly_gas_cost_per_car = (monthly_trip_length / int(car_data[car][1])) * gas_price_average
+            car_physical_cost = float(car_data[car][0]) / 120
+            calculated_avg = monthly_gas_cost_per_car + monthly_static + car_physical_cost
+            per_month_cars.setdefault(car, '$' + str(round(calculated_avg, 2)))
+    except:
+        pass
 print()
 print('Costs of different cars per month: ')
 print()
 
-for key,value in per_month_cars.items():
-    print(key + ' costs ' + value)
-
+try:
+    for key,value in per_month_cars.items():
+        print(key + ' costs ' + value)
+except:
+    print('Not printing ' + key)
